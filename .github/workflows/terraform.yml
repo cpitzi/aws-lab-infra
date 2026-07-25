@@ -8,6 +8,8 @@
 #      passing required check) so the `gate` job below can be required without
 #      deadlocking. See lentago/.github#27.
 #   2. Push to main that changes .tf/.tfvars files or this workflow → apply
+#   3. Manual workflow_dispatch on main → apply (re-reads secrets and redeploys
+#      without waiting for an unrelated push; useful after credential rotation)
 #
 # Authenticates via OIDC using the terraform-specific IAM role.
 # Plan output is posted as a PR comment for review.
@@ -18,6 +20,7 @@ on:
   # PR trigger is intentionally NOT path-filtered so the required `gate` check
   # always reports; the .tf/.tfvars filter lives in the `changes` job instead.
   pull_request:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -160,7 +163,7 @@ jobs:
 
   apply:
     name: Terraform Apply
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: terraform
     concurrency:
