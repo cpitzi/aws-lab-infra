@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="300" viewBox="0 0 1280 300" role="img" aria-label="lentago labs — solidago: Cloud platform · AWS, 100% Terraform">
+  <defs>
+    <linearGradient id="hero" x1="0.08" y1="0" x2="0.86" y2="1">
+      <stop offset="0" stop-color="#0e2b1a"></stop>
+      <stop offset="1" stop-color="#1b4b2e"></stop>
+    </linearGradient>
+    <clipPath id="frame"><rect width="1280" height="300"></rect></clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="300" fill="url(#hero)"></rect>
+
+    <!-- Topographic contour lines, hugging the corner under the watermark -->
+    <g transform="translate(858,214) scale(1.0)" fill="none" stroke="#E0A81C" stroke-width="1.5">
+      <path d="M0 100 C 120 -10, 260 -10, 400 70" stroke-opacity="0.10"></path>
+      <path d="M0 80 C 130 -45, 270 -45, 420 40" stroke-opacity="0.12"></path>
+      <path d="M10 62 C 145 -78, 280 -78, 435 12" stroke-opacity="0.14"></path>
+      <path d="M25 46 C 160 -110, 290 -110, 448 -14" stroke-opacity="0.11"></path>
+    </g>
+
+    <!-- Genus watermark, bleeding off the right edge -->
+    <g transform="translate(896,-46) scale(6)" opacity="0.085">
+<path d="M32 58C31 45 33 30 32 16" stroke="#f3f0e8" stroke-width="2.2" stroke-linecap="round"></path>
+  <path d="M32 46C27 44 23 40 21 34" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 46C37 44 41 40 43 34" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 38C28 36 25 32 24 27" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 38C36 36 39 32 40 27" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 30C29 28 27 25 26 21" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 30C35 28 37 25 38 21" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 55C28.5 54 25.5 52 24 48.5" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 55C35.5 54 38.5 52 40 48.5" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <circle cx="21" cy="34" r="2" fill="#E0A81C"></circle>
+  <circle cx="43" cy="34" r="2" fill="#E0A81C"></circle>
+  <circle cx="24" cy="27" r="2" fill="#E0A81C"></circle>
+  <circle cx="40" cy="27" r="2" fill="#E0A81C"></circle>
+  <circle cx="26" cy="21" r="2" fill="#E0A81C"></circle>
+  <circle cx="38" cy="21" r="2" fill="#E0A81C"></circle>
+  <circle cx="32" cy="13.5" r="2.3" fill="#E0A81C"></circle>
+    </g>
+
+    <!-- Eyebrow: gold diamond + category -->
+    <text x="80" y="84" font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="4.5"><tspan fill="#E0A81C">◆</tspan><tspan fill="#9fb0aa">  LENTAGO LABS · SUITE</tspan></text>
+
+    <!-- Genus mark chip -->
+    <g transform="translate(80,110) scale(1.25)">
+<rect width="64" height="64" rx="12" ry="12" fill="#0e2b1a"></rect>
+  <path d="M32 58C31 45 33 30 32 16" stroke="#f3f0e8" stroke-width="2.2" stroke-linecap="round"></path>
+  <path d="M32 46C27 44 23 40 21 34" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 46C37 44 41 40 43 34" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 38C28 36 25 32 24 27" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 38C36 36 39 32 40 27" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 30C29 28 27 25 26 21" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 30C35 28 37 25 38 21" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 55C28.5 54 25.5 52 24 48.5" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <path d="M32 55C35.5 54 38.5 52 40 48.5" stroke="#cdd6d0" stroke-width="1.4" stroke-linecap="round"></path>
+  <circle cx="21" cy="34" r="2" fill="#E0A81C"></circle>
+  <circle cx="43" cy="34" r="2" fill="#E0A81C"></circle>
+  <circle cx="24" cy="27" r="2" fill="#E0A81C"></circle>
+  <circle cx="40" cy="27" r="2" fill="#E0A81C"></circle>
+  <circle cx="26" cy="21" r="2" fill="#E0A81C"></circle>
+  <circle cx="38" cy="21" r="2" fill="#E0A81C"></circle>
+  <circle cx="32" cy="13.5" r="2.3" fill="#E0A81C"></circle>
+    </g>
+
+    <text x="184" y="158" font-family="'Space Grotesk', system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700" font-size="48" fill="#f3f0e8" letter-spacing="-1.6">solidago</text>
+    <text x="186" y="186" font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#cdd6d0" letter-spacing="1.6">CLOUD PLATFORM · AWS, 100% TERRAFORM</text>
+
+    <!-- Field prompt: triangulation marker, never $ or > -->
+    <text x="80" y="250" font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14"><tspan fill="#E0A81C">▲</tspan><tspan fill="#9fb0aa"> lentago</tspan><tspan fill="#748983">  terraform apply  ·  vpc · ecs · rds · waf</tspan></text>
+
+    <rect x="0" y="296" width="1280" height="4" fill="#E0A81C"></rect>
+  </g>
+</svg>
