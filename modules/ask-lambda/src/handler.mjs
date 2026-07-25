@@ -40,6 +40,47 @@ const MAX_HISTORY = 8; // prior conversation turns kept for context
 let served = 0;
 let day = new Date().toISOString().slice(0, 10);
 
+// One structured line per invocation, success or failure — see CLAUDE.md "Ask
+// logging (Axiom)" for the privacy/retention rationale behind each field. A
+// fixed key set (even when a field doesn't apply to a given outcome) keeps the
+// Axiom schema uniform across outcomes. `outcome` is one of: success |
+// upstream_error | rate_limited | rejected. `timeout` is reserved but not
+// currently reachable — the platform Lambda timeout kills the process before
+// any line can be written, so there's no code path to emit it from today.
+const logAsk = (fields) => {
+  console.log(JSON.stringify({
+    event: 'ask_query',
+    ts: new Date().toISOString(),
+    site: null,
+    question: null,
+    outcome: null,
+    latency_ms: null,
+    model: null,
+    input_tokens: null,
+    output_tokens: null,
+    answer_produced: null,
+    grounded: null,
+    upstream_status: null,
+    error: null,
+    ...fields,
+  }));
+};
+
+// Best-effort only: the model has no structured "grounded" output, so this
+// pattern-matches the handful of decline phrasings the RULES prompt asks it to
+// use when the reference passages don't cover a question ("say so plainly
+// instead of inventing it"). False negatives/positives are expected — treat
+// `grounded` as directional signal for content-gap triage, not a hard fact.
+const DECLINE_PATTERNS = [
+  /don't (see|find) (this|that|it)? ?(addressed|covered)/i,
+  /passages? (don't|doesn't|do not|does not) cover/i,
+  /not (addressed|covered) (in|by) the (record|passages|reference)/i,
+  /(records?|passages?) (don't|doesn't|do not|does not) (say|mention|address)/i,
+  /I (don't|do not) have (that|this) information/i,
+  /outside (what|the) (records?|passages?) (cover|provide)/i,
+];
+const looksDeclined = (text) => DECLINE_PATTERNS.some((re) => re.test(text));
+
 // The persona differs by serving domain (selected per request from the matched
 // Origin); every rule below the persona is shared verbatim between the two.
 
@@ -170,17 +211,21 @@ export async function handler(event) {
   };
   if (event.requestContext?.http?.method === 'OPTIONS') return { statusCode: 204, headers: cors };
 
-  const today = new Date().toISOString().slice(0, 10);
-  if (today !== day) { day = today; served = 0; }
-  if (++served > Number(process.env.DAILY_REQUEST_CAP || 300)) {
-    return { statusCode: 429, headers: cors, body: JSON.stringify({ error: 'Daily question budget reached — try tomorrow.' }) };
-  }
-
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch { body = {}; }
   const question = String(body.question || '').slice(0, 500).trim();
   const contexts = Array.isArray(body.contexts) ? body.contexts.slice(0, 8) : [];
+  const site = /essexcrossingatmontserrat\.com$/.test(origin) ? 'essexcrossing' : 'pondview';
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (today !== day) { day = today; served = 0; }
+  if (++served > Number(process.env.DAILY_REQUEST_CAP || 300)) {
+    logAsk({ site, question, outcome: 'rate_limited' });
+    return { statusCode: 429, headers: cors, body: JSON.stringify({ error: 'Daily question budget reached — try tomorrow.' }) };
+  }
+
   if (!question || !contexts.length) {
+    logAsk({ site, question, outcome: 'rejected' });
     return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'question and contexts required' }) };
   }
 
@@ -206,27 +251,50 @@ export async function handler(event) {
     { role: 'user', content: `Reference passages for this question:\n\n${passages}\n\nQuestion: ${question}` },
   ];
 
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      thinking: { type: 'adaptive' },
-      output_config: { effort: EFFORT },
-      system: systemFor(origin),
-      messages,
-    }),
-  });
+  const fetchStart = Date.now();
+  let r;
+  try {
+    r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        thinking: { type: 'adaptive' },
+        output_config: { effort: EFFORT },
+        system: systemFor(origin),
+        messages,
+      }),
+    });
+  } catch (err) {
+    // Network-level failure (no response at all) — log and rethrow unchanged,
+    // preserving today's behavior (an unhandled rejection, caught by the Lambda
+    // runtime) rather than inventing a new response shape for it.
+    logAsk({ site, question, outcome: 'upstream_error', latency_ms: Date.now() - fetchStart, model: MODEL, error: String(err?.message || err).slice(0, 300) });
+    throw err;
+  }
+  const latencyMs = Date.now() - fetchStart;
   if (!r.ok) {
-    console.log('anthropic_error', r.status, await r.text().catch(() => ''));
+    const errText = await r.text().catch(() => '');
+    logAsk({ site, question, outcome: 'upstream_error', latency_ms: latencyMs, model: MODEL, upstream_status: r.status, error: errText.slice(0, 300) });
     return { statusCode: 502, headers: cors, body: JSON.stringify({ error: `model call failed (${r.status})` }) };
   }
   const data = await r.json();
   const answer = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('\n');
+  logAsk({
+    site,
+    question,
+    outcome: 'success',
+    latency_ms: latencyMs,
+    model: MODEL,
+    input_tokens: data.usage?.input_tokens ?? null,
+    output_tokens: data.usage?.output_tokens ?? null,
+    answer_produced: answer.trim().length > 0,
+    grounded: answer.trim().length > 0 && !looksDeclined(answer),
+  });
   return { statusCode: 200, headers: cors, body: JSON.stringify({ answer }) };
 }

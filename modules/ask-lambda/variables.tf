@@ -41,7 +41,7 @@ variable "daily_request_cap" {
 variable "log_retention_days" {
   description = "Retention for the Lambda's CloudWatch log group"
   type        = number
-  default     = 14
+  default     = 30
 }
 
 variable "lambda_timeout" {
