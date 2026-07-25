@@ -72,7 +72,13 @@ jobs:
     needs: changes
     if: needs.changes.outputs.tf == 'true' && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    environment: terraform
+    # Deliberately NOT `environment: terraform` — plan is read-only and needs nothing
+    # the environment provides (it holds no secrets or variables; the TF_VAR_* values
+    # below are repo-level Actions variables). Sharing it with `apply` would mean any
+    # protection rule added for applies also gates every PR plan — and plan feeds the
+    # required `gate` check, so reviewer approval would stall every PR and a
+    # main-only branch policy would block plans outright (a PR ref is never `main`).
+    # Keeping the environment on `apply` alone is what lets it be protected.
     # Hidden Pitzi Labs preview host is supplied from the repo Actions
     # variable (not committed to source). Required by var.pitzilabs_preview_host.
     env:
