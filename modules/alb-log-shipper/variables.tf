@@ -44,9 +44,10 @@ variable "betula_repo" {
 variable "betula_ref" {
   description = "Pinned betula ref (commit SHA or tag) the shipper package is fetched at, for a reproducible Lambda artifact. Bump this to adopt shipper changes; the build re-runs when it changes."
   type        = string
-  # betula main @ the merge of betula#85 (parser tolerates 34-field ALB lines;
-  # the #81 pin raised ValueError on every real line, shipping zero events).
-  default = "4e3ee77ecd909423c279551b262f8cd8b5c0e1e5"
+  # betula main @ the merge of betula#91 (truncates client_ip at parse time for
+  # visitor privacy: IPv4 last octet zeroed, IPv6 last 64 bits). Supersedes the
+  # #85 pin (parser tolerates 34-field ALB lines), which this ref still contains.
+  default = "7d1dbc10869763e13115533159d91081088f52a0"
 }
 
 variable "log_retention_days" {
