@@ -92,9 +92,11 @@ solidago/
 │       ├── variables.tf         # Environment-specific variables
 │       ├── outputs.tf           # Exported values
 │       └── terraform.tfvars     # Variable values for dev
-├── modules/
-│   ├── alb/                     # Application Load Balancer + listeners
-│   ├── apex-domain/             # Extra registered apex domain (lentago.dev) in front of a site
+├── modules/                     # 24 modules, all wired from environments/dev/main.tf
+│   ├── alb/                     # Application Load Balancer + listeners + access-log bucket
+│   ├── alb-log-shipper/         # Lambda shipping ALB access logs from S3 to Axiom
+│   ├── apex-domain/             # Extra registered apex domain in front of a site (3 instances)
+│   ├── ask-lambda/              # "Ask the Wiki" answer endpoint (Lambda + public function URL)
 │   ├── aws-config/              # AWS Config recorder + compliance rules
 │   ├── budgets/                 # AWS Budgets with SNS alerts
 │   ├── cloudtrail/              # CloudTrail audit logging
@@ -104,6 +106,7 @@ solidago/
 │   ├── ecs/                     # ECS cluster, service, task definition
 │   ├── ecs-autoscaling/         # Application Auto Scaling policies
 │   ├── elasticache/             # ElastiCache (Valkey) replication group
+│   ├── grafana-cloud/           # Cross-account read-only role for Grafana Cloud CloudWatch
 │   ├── iam/                     # IAM roles, policies, OIDC provider
 │   ├── kms/                     # KMS customer-managed key
 │   ├── monitoring/              # CloudWatch alarms + SNS topic
@@ -111,7 +114,7 @@ solidago/
 │   ├── s3/                      # S3 bucket with encryption + lifecycle
 │   ├── secrets/                 # Secrets Manager
 │   ├── security-groups/         # Security group rules (all SG logic here)
-│   ├── site/                    # Additional static site on the shared ALB + ECS cluster
+│   ├── site/                    # Additional site on the shared ALB + ECS cluster (2 instances)
 │   ├── vpc/                     # VPC, subnets, NAT Gateways, flow logs
 │   └── waf/                     # WAFv2 Web ACL + ALB association
 ├── scripts/
