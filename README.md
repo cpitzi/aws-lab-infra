@@ -14,11 +14,55 @@ A Terraform-managed AWS environment built as a personal learning lab. It hosts a
 
 **Authorship:** The Terraform, scripts, workflows, and documentation in this repo are co-written with [Claude](https://claude.ai) (Anthropic). I direct the architecture and review the output; Claude writes the code. I'm an infrastructure operator, not a software engineer — please don't read this repo as a portfolio of coding ability.
 
+## 📚 Ask this codebase (DeepWiki)
+
+<a href="https://deepwiki.com/lentago/solidago"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" height="32"></a>
+
+> [DeepWiki](https://deepwiki.com/lentago/solidago) maintains an AI-generated wiki over this
+> repository — architecture pages, diagrams, and a Q&A box grounded in the actual code. Every
+> public Lentago Labs repo is indexed ([deepwiki.com/lentago](https://deepwiki.com/lentago));
+> it is the fastest way to orient before reading source. It is AI-generated: trust it to orient
+> you, verify against the code before you act on it.
+
+**Good first questions:**
+
+- How does the `terraform.yml` workflow's `gate` job avoid deadlocking required-status-check enforcement on docs-only PRs?
+- What is the trust-policy difference between the `solidago-dev-github-actions` and `solidago-dev-github-actions-terraform` IAM roles, and which repos/environments can assume each?
+- How would I onboard a brand-new containerized workload onto this platform's shared ECS cluster and ALB without touching the existing workloads?
+
 ## Why This Exists
 
 I'm an infrastructure operations professional with 25+ years of production experience — bare-metal data centers, 24x7 ops, single-homed environments where every decision had physical consequences. This project is how I learn cloud-native architecture: by specifying what I want, having Claude implement it, and then operating it with real traffic.
 
 The intent is to reflect how a production environment should be built, scaled down to a single-account learning lab. No shortcuts on security posture. No placeholder modules. Real CI/CD, real monitoring, real cost controls — but the *code* itself is Claude's, written under my direction.
+
+## 🧭 What this repo demonstrates
+
+Patterns an ops professional can lift into a day job — each one points at the code that proves it.
+
+| Pattern | How it shows up here |
+|---------|----------------------|
+| **Plan-on-PR / apply-on-merge Terraform** — change management where the merged PR *is* the change record | [`.github/workflows/terraform.yml`](.github/workflows/terraform.yml): the `plan` job posts the full `terraform plan` diff as a PR comment; the `apply` job runs only on push to `main` / `workflow_dispatch`. Nobody runs `terraform apply` from a laptop. |
+| **OIDC-only cloud auth** — no static AWS keys anywhere | `role-to-assume` in [`terraform.yml`](.github/workflows/terraform.yml) is scoped to `repo:lentago/solidago:environment:terraform`; there are no AWS access keys in GitHub Secrets. |
+| **Dual IAM-role trust split** — blast-radius containment between infra and workloads | [`modules/iam`](modules/iam) + [`docs/WORKLOAD_RELATIONSHIP.md`](docs/WORKLOAD_RELATIONSHIP.md): `solidago-dev-github-actions` (workloads push to ECR/ECS) vs `solidago-dev-github-actions-terraform` (this repo mutates infra). Neither can do the other's job. |
+| **Required check that survives path-filtered CI** — no docs-only PR gets stuck forever | The `gate` job in [`terraform.yml`](.github/workflows/terraform.yml) (`needs: [changes, plan]`, `if: always()`) reports green even when the plan is skipped, so the ruleset can require exactly `gate`. |
+| **Shared reusable workflows** — cross-repo CI logic centralized, not copy-pasted | [`.github/workflows/docs-check.yml`](.github/workflows/docs-check.yml) is a thin wrapper over `uses: lentago/shared-workflows/.github/workflows/docs-check.yml@main`. |
+| **Security-by-default posture** — even in a personal-scale lab | [`modules/waf`](modules/waf) (AWS managed rule groups + rate limiting), [`modules/security-groups`](modules/security-groups) (tiered least-privilege chaining), [`modules/kms`](modules/kms) (encryption at rest). |
+| **Cost governance as code** — guardrails declared in Terraform, not clicked into the console | [`modules/budgets`](modules/budgets): `aws_budgets_budget` with SNS alerts at 50 / 80 / 100% thresholds. |
+| **Known-benign diffs documented, not tolerated in silence** | [`modules/ecs/main.tf`](modules/ecs/main.tf) sets `ignore_changes = [task_definition, desired_count]` so CI/CD and auto-scaling own those fields; the recurring task-definition plan entry is expected AWS normalization, not drift. |
+
+## 🛠️ Make a change yourself
+
+This is a lab — the systems are real, the stakes are not. Pick a vector:
+
+**Ship a new workload (module + Lambda) onto the shared platform.** Add or edit a module (for example [`modules/ask-lambda`](modules/ask-lambda)) and wire it into [`environments/dev/main.tf`](environments/dev/main.tf), then open a PR. The `changes` job detects the `.tf` edits, `plan` runs and posts the diff as a PR comment for review, and `gate` requires it green before merge. On merge to `main`, the `apply` job assumes the Terraform OIDC role and stands up the real AWS resources — no manual console step. This is the org-level showcase vector: a newcomer can trace one PR straight through to a live AWS effect.
+**Proof this works:** [#119 — Add ask-lambda module + wire pondview 'Ask the Wiki' answer endpoint](https://github.com/lentago/solidago/pull/119); [#109 — Deploy the ALB-access-log → Axiom shipper as a Lambda](https://github.com/lentago/solidago/pull/109); [#117 — Add site_pondview: hidden preview for the Essex Crossing HOA wiki](https://github.com/lentago/solidago/pull/117).
+
+**Onboard a second workload repo onto the shared ALB/ECS via OIDC trust.** Edit the IAM module's trust policy and the `apex-domain` module to add a new site plus Route 53 zone, open a PR reviewed through the posted Terraform plan, and merge. The `apply` provisions the new ECR/ECS/DNS/ACM stack and grants the new repo's OIDC subject deploy rights — the existing workloads' trust is left untouched. Adding a second repo's trust subject needs org-level access to that repo's Actions configuration.
+**Proof this works:** [#135 — Bring pondviewlane.com online (apex domain, public launch)](https://github.com/lentago/solidago/pull/135); [#89 — Codify site-repo rename dual-trust in app OIDC role](https://github.com/lentago/solidago/pull/89).
+
+**Rename/rebrand live AWS resources without breaking the running platform.** Rename resource identifiers in Terraform (`foundry-*` → `solidago-*`) in one PR reviewed via plan, merge, and let `apply` recreate or rename the named resources; a follow-up PR migrates the shared state backend key itself — proving the plan/apply loop handles even self-referential infra moves safely.
+**Proof this works:** [#104 — Rename foundry-* AWS resource names to the solidago codename](https://github.com/lentago/solidago/pull/104); [#105 — Migrate shared Terraform state backend to solidago-tfstate-*](https://github.com/lentago/solidago/pull/105).
 
 ## What's Deployed
 
@@ -183,3 +227,10 @@ With all resources running 24/7, the environment costs approximately $130-140/mo
 ## License
 
 This project is open source. See individual files for details.
+
+---
+
+> 🌱 **Lentago Labs** is a team learning lab — real systems, non-critical stakes, modern
+> operations patterns demonstrated in the open. Start at the
+> [org profile](https://github.com/lentago), and read this repo on
+> [DeepWiki](https://deepwiki.com/lentago/solidago).
