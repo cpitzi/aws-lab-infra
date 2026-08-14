@@ -178,6 +178,8 @@ Workload code (the Astro application, its Dockerfile, and its deploy workflow) l
 
 ## Design Decisions
 
+**Architecture decisions:** the reconstructed decision records live in [`docs/decisions/`](docs/decisions/) — the *why* behind the choices summarized below, with alternatives and consequences.
+
 ### Separate IAM Roles for App Deploy and Terraform
 
 The app deploy role can push containers and update ECS services. The Terraform role can manage infrastructure. Neither can do the other's job. The blast radius of a compromised pipeline is limited to its scope.
