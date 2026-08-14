@@ -56,12 +56,20 @@ stale trust entry).
   incumbent default. Rejected: long-lived credentials that must be rotated,
   stored, and are copied into every run. **Worse** — strictly more standing
   secret material for no offsetting benefit here.
+- *Widening the app-deploy role instead of minting a second role.* The two-role
+  shape was weighed explicitly in the pre-repo era (2026-04-07/11, per
+  early-era session records) as *Option A: widen the existing role* vs
+  *Option B: a dedicated Terraform-pipeline role*, when the Terraform pipeline
+  first needed permissions far beyond the deploy role's scope. Option B won.
+  **Worse** — Option A would have collapsed the blast-radius boundary this ADR
+  exists to draw.
 - *The `repository_dispatch` incumbent* (issue #55). A content-source repo fired
-  a dispatch that ran the build/deploy inside the platform repo, keeping the
-  application coupled to platform infrastructure. Rejected in favor of a clean
-  platform/workload split. **Worse** for the "platform, not a single-app
-  deployment" goal — it kept application code and its deploy path inside the
-  platform repo.
+  a dispatch that ran the build/deploy inside the platform repo. This was itself
+  a deliberate choice (2026-03-21, per early-era session records), not an
+  accident — it fit the era when the application lived inside the platform
+  repo. **Superseded** rather than merely rejected: once "platform, not a
+  single-app deployment" became the goal, keeping application code and its
+  deploy path inside the platform repo was the wrong coupling.
 
 **Retrospective — not considered at the time**
 
@@ -89,3 +97,7 @@ stale trust entry).
 - Repo and site renames now carry an OIDC-trust checklist: open a dual-trust
   window, cut over, then prune — and prefer the immutable subject claim so the
   next rename is trust-stable by construction.
+- Extraction lesson (per early-era session records): the IAM module's shared
+  `github_repo` variable served two trust relationships and had to be *split*
+  (app-deploy vs terraform-pipeline), not repointed — a shared variable serving
+  two trust relationships is a coupling smell.

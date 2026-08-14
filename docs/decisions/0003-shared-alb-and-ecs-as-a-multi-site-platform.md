@@ -52,16 +52,29 @@ resolved them)
   certs attached via SNI. **Lateral**: SNI keeps each domain's cert lifecycle
   independent (add/remove a domain without reissuing a shared cert), at the cost
   of one ACM cert + validation record per domain.
+- *NLB instead of ALB; EC2-backed ECS instead of Fargate.* Decided in the
+  pre-repo era (2026-03-01, per early-era session records): ALB (Layer 7)
+  chosen for TLS termination and the host/path routing that later underpinned
+  the multi-site claim — an NLB has no host-header routing at all; Fargate
+  chosen because an EC2 instance fleet "demonstrates nothing this portfolio
+  needs to prove" while adding AMI patching and capacity management. **Worse**,
+  both — and both are load-bearing preconditions of this ADR's shape.
+- *CloudFront in front of the platform.* Part of the recorded 2026-03-18
+  multi-site vision (per early-era session records): CloudFront fronting both
+  static and ALB-backed dynamic workloads. Never shipped — a recorded
+  **not-yet** rather than a rejection; nothing in the shared-ALB design
+  precludes adding it.
 
 **Retrospective — not considered at the time**
 
-- *CloudFront + S3 static hosting.* Most of the hosted sites are largely static,
-  and CloudFront+S3 would be **cheaper** and lower-ops for that content — no NAT,
-  no Fargate, no ALB. But it is **worse for the thing this repo exists to
-  demonstrate**: a shared *container* platform with per-tenant ECS services, ALB
-  host-header routing, and OIDC-scoped deploys. Choosing static hosting would
-  optimize the hosting bill while deleting the capability the project is built to
-  show. A defensible choice for a production static site; the wrong one here.
+- *CloudFront + S3 static hosting as the whole platform* (dropping ECS
+  entirely). Most of the hosted sites are largely static, and S3+CloudFront
+  would be **cheaper** and lower-ops for that content — no NAT, no Fargate, no
+  ALB. But it is **worse for the thing this repo exists to demonstrate**: a
+  shared *container* platform with per-tenant ECS services, ALB host-header
+  routing, and OIDC-scoped deploys. Choosing static hosting would optimize the
+  hosting bill while deleting the capability the project is built to show. A
+  defensible choice for a production static site; the wrong one here.
 
 ## Consequences
 

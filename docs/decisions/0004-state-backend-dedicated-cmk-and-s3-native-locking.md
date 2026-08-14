@@ -1,6 +1,6 @@
 # ADR-0004: State backend — dedicated bootstrap-managed CMK + S3-native locking
 
-**Status:** Accepted (2026-07-01; reconstructed 2026-08-13)
+**Status:** Accepted (CMK 2026-07-01; S3-native locking decided 2026-03-31, completed 2026-07-01; reconstructed 2026-08-13)
 
 ## Context
 
@@ -34,9 +34,11 @@ and is recorded as decision #35 in `reference-notes.md`. (The key was aliased
 `alias/solidago-tfstate` during the later backend migration — see
 [ADR-0007](0007-full-codename-rename-including-live-aws-and-tfstate.md).)
 
-**Drop the DynamoDB lock table for S3-native locking.** PR #74 (Closes #13)
-migrates the backend to `use_lockfile = true`, removing the separate DynamoDB
-lock table entirely.
+**Drop the DynamoDB lock table for S3-native locking.** The decision dates to
+2026-03-31 (per early-era session records, prompted by the deprecation warning
+on the backend's `dynamodb_table` parameter); PR #74 (Closes #13, 2026-07-01)
+completed the migration to `use_lockfile = true`, removing the separate
+DynamoDB lock table entirely.
 
 ## Alternatives
 
