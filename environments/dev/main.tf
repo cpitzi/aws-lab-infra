@@ -113,9 +113,11 @@ module "iam" {
     # so its token sub is
     #   repo:lentago@297986315/site-pondviewlane-com@1304395322:ref:refs/heads/main
     # (org id 297986315 / repo id 1304395322). We trust that immutable form; the
-    # plain "repo:lentago/site-pondviewlane-com:*" never matches. The "/" makes
-    # the iam module emit it verbatim as repo:<value>:*. Bonus: immutable IDs
-    # survive a repo rename, unlike the plain-name entries the older repos use.
+    # plain "repo:lentago/site-pondviewlane-com:ref:refs/heads/main" never matches.
+    # The "/" makes the iam module emit it verbatim as
+    # repo:<value>:ref:refs/heads/main — which is exactly the sub above. Bonus:
+    # immutable IDs survive a repo rename, unlike the plain-name entries the
+    # older repos use.
     "lentago@297986315/site-pondviewlane-com@1304395322",
   ]
 

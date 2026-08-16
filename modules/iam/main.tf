@@ -232,15 +232,24 @@ data "aws_iam_policy_document" "github_actions_assume" {
     # GitHub's JWT contains the repo and ref info. Each platform-hosted
     # workload repo (the app + any additional sites) is listed explicitly;
     # nothing else can assume the role.
+    #
+    # Subjects are pinned to the repo's default branch
+    # (ref:refs/heads/main) rather than a wildcard ":*" ref, matching the
+    # tighter precedent set by the Terraform pipeline role below. Every
+    # site's deploy.yml runs only on push-to-main and workflow_dispatch,
+    # and both issue a ref:refs/heads/main sub, so this covers all real
+    # triggers. No wildcards remain, so we use StringEquals (a list is
+    # OR-matched — a token matching any one entry is admitted).
     condition {
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
       # An entry may be a bare repo name (assumed under var.github_org) or an
       # owner-qualified "owner/repo" for a repo hosted outside the org (e.g. a
-      # personal-account repo). Owner-qualified entries are used verbatim.
+      # personal-account repo, or the immutable "owner@id/repo@id" form). The
+      # owner portion is used verbatim; every entry is pinned to :ref:refs/heads/main.
       values = [
         for repo in concat([var.app_github_repo], var.additional_app_github_repos) :
-        strcontains(repo, "/") ? "repo:${repo}:*" : "repo:${var.github_org}/${repo}:*"
+        strcontains(repo, "/") ? "repo:${repo}:ref:refs/heads/main" : "repo:${var.github_org}/${repo}:ref:refs/heads/main"
       ]
     }
 
