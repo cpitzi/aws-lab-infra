@@ -5,3 +5,18 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # Grouping collapses weekly churn into at most two PRs per ecosystem while
+    # keeping the risk split visible in the PR list: the "-routine" PR bundles
+    # minor/patch bumps (reviewable on green checks), the "-major" PR isolates
+    # breaking changes so they get read deliberately instead of hiding inside
+    # a pile of patches. See lentago/.github#114 for the fleet-wide rollout
+    # that made this necessary (28 individual PRs across six repos at once).
+    groups:
+      actions-routine:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-major:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["major"]
