@@ -436,6 +436,11 @@ resource "aws_iam_role" "github_actions_terraform" {
   }
 }
 
+# trivy:ignore:AVD-AWS-0345 — the Terraform CI role manages ~20 services and
+# grants `<service>:*` on each by design; trivy singles out `s3:*`. Genuine
+# least-privilege for this role (or a read-only plan / write apply split) is
+# tracked in #180 item 2 — not something to half-fix from a lint pass.
+#trivy:ignore:AVD-AWS-0345
 data "aws_iam_policy_document" "github_actions_terraform" {
   statement {
     sid    = "TerraformInfraManagement"
