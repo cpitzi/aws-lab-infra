@@ -65,6 +65,12 @@ variable "additional_app_github_repos" {
   type        = list(string)
   default     = []
 }
+variable "dotgithub_repo" {
+  description = "GitHub org's shared '.github' repo name (without org prefix), whose Terraform CI may assume the dotgithub Terraform pipeline role. That repo is standing up its own Terraform-managed state (R19, lentago/.github#81) and needs a narrowly-scoped role distinct from github_repo (this repo's own pipeline role)."
+  type        = string
+  default     = ".github"
+}
+
 variable "additional_execution_secret_arns" {
   description = <<-EOT
     Extra Secrets Manager secret ARNs the ECS task EXECUTION role may read,

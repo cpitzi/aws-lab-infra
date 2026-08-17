@@ -49,6 +49,11 @@ output "github_actions_terraform_role_arn" {
   description = "GitHub Actions Terraform pipeline role ARN for CI/CD"
   value       = module.iam.github_actions_terraform_role_arn
 }
+
+output "dotgithub_github_actions_terraform_role_arn" {
+  description = "ARN of the lentago/.github Terraform pipeline role (R19 step 1, lentago/.github#81)"
+  value       = module.iam.dotgithub_github_actions_terraform_role_arn
+}
 output "alb_security_group_id" {
   description = "Security group ID for ALB"
   value       = module.security_groups.alb_security_group_id
