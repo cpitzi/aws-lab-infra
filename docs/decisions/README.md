@@ -12,6 +12,11 @@ weighed at the time (drawn from the cited evidence) from options marked
 *"retrospective — not considered at the time"*, which are assessed here with
 hindsight and were **not** part of the original decision.
 
+ADRs added after the 2026-08-13 sweep (e.g. [0008](0008-dev-tier-rds-deletion-protection-off-no-final-snapshot.md))
+follow the same "Status" convention — original decision date, then when the
+record was written — but were filed individually, not recovered as part of
+that sweep.
+
 | ADR | Title | Original date |
 |-----|-------|---------------|
 | [0001](0001-grafana-is-visualization-not-alerting.md) | Grafana is visualization, not alerting | 2026-07-04 |
@@ -21,3 +26,4 @@ hindsight and were **not** part of the original decision.
 | [0005](0005-selective-teardown-as-the-cost-model.md) | Selective nightly teardown as the cost model | 2026-07-01 |
 | [0006](0006-service-level-iam-wildcards-oidc-sub-is-the-boundary.md) | Service-level IAM wildcards; OIDC sub scoping is the real boundary | 2026-02-28 |
 | [0007](0007-full-codename-rename-including-live-aws-and-tfstate.md) | Full codename rename, including live AWS resources and the tfstate backend | 2026-07-08 |
+| [0008](0008-dev-tier-rds-deletion-protection-off-no-final-snapshot.md) | Dev-tier RDS runs with deletion protection off and no final snapshot | 2026-03-19 |
