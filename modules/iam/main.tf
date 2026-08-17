@@ -495,3 +495,135 @@ resource "aws_iam_role_policy_attachment" "github_actions_terraform" {
   role       = aws_iam_role.github_actions_terraform.name
   policy_arn = aws_iam_policy.github_actions_terraform.arn
 }
+
+
+# =============================================================================
+# .GITHUB REPO TERRAFORM PIPELINE ROLE
+#
+# lentago/.github (the org's shared-workflows repo) is standing up its own
+# Terraform-managed state (R19 step 1, lentago/.github#81). This role is
+# scoped to exactly that repo's state key in solidago's shared tfstate
+# bucket, plus the shared lock table — it cannot touch solidago's own state,
+# any other repo's state, or any other AWS service. No GitHub-side
+# permissions are granted here; those flow through a separate PAT secret in
+# that repo's own CI, not this AWS role.
+#
+# Trust deliberately does NOT reuse the environment-gated shape of the
+# github_actions_terraform role above. Instead it mirrors drosera's
+# terraform.yml, which assumes a single Terraform-pipeline role from BOTH its
+# plan job (triggered on pull_request) and its apply job (triggered on push
+# to main) — see
+# arn:aws:iam::365184644049:role/homelab-observability-github-actions-terraform.
+# The trust condition below is a list of two subs, OR-matched by
+# StringEquals (same technique as github_actions_assume above): the
+# push-to-main sub for apply, and the fixed pull_request sub GitHub issues
+# for any PR-triggered run regardless of head branch, for plan.
+# =============================================================================
+
+data "aws_iam_policy_document" "dotgithub_github_actions_terraform_assume" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.github.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    # lentago/.github is an established repo, not a freshly-created one, so
+    # it issues the plain "repo:org/repo:..." sub form rather than GitHub's
+    # newer immutable numeric-ID form (contrast the
+    # lentago@<id>/site-pondviewlane-com@<id> entry above, which trusts a
+    # genuinely new repo).
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:sub"
+      values = [
+        "repo:${var.github_org}/${var.dotgithub_repo}:ref:refs/heads/main",
+        "repo:${var.github_org}/${var.dotgithub_repo}:pull_request",
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role" "dotgithub_github_actions_terraform" {
+  name               = "dotgithub-github-actions-terraform"
+  assume_role_policy = data.aws_iam_policy_document.dotgithub_github_actions_terraform_assume.json
+
+  max_session_duration = 3600
+
+  tags = {
+    Name = "dotgithub-github-actions-terraform"
+  }
+}
+
+# Least privilege per lentago/.github#81: only this repo's state object in
+# the shared tfstate bucket, plus the DynamoDB lock table. No ListBucket, no
+# DeleteObject, no access to any other AWS service.
+data "aws_iam_policy_document" "dotgithub_github_actions_terraform" {
+  statement {
+    sid = "TerraformStateS3"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+    ]
+    resources = [
+      "arn:aws:s3:::solidago-tfstate-${var.aws_account_id}/dotgithub/terraform.tfstate",
+    ]
+  }
+
+  # The state bucket is encrypted with the dedicated bootstrap-managed CMK
+  # (alias/solidago-tfstate). Its key policy delegates authorization entirely
+  # to IAM (see scripts/bootstrap/bootstrap-backend.sh), so this grant is a
+  # prerequisite for the S3 Get/Put above to actually succeed, not a
+  # separate permission — same TerraformStateKMS pattern the app deploy role
+  # above uses for its own state key.
+  statement {
+    sid = "TerraformStateKMS"
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey",
+    ]
+    resources = [var.tfstate_kms_key_arn]
+  }
+
+  statement {
+    sid = "TerraformStateLock"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:DescribeTable",
+    ]
+    resources = [
+      "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/solidago-tfstate-lock",
+    ]
+  }
+
+  statement {
+    sid       = "CallerIdentity"
+    actions   = ["sts:GetCallerIdentity"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "dotgithub_github_actions_terraform" {
+  name   = "dotgithub-github-actions-terraform"
+  policy = data.aws_iam_policy_document.dotgithub_github_actions_terraform.json
+
+  tags = {
+    Name = "dotgithub-github-actions-terraform"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "dotgithub_github_actions_terraform" {
+  role       = aws_iam_role.dotgithub_github_actions_terraform.name
+  policy_arn = aws_iam_policy.dotgithub_github_actions_terraform.arn
+}
