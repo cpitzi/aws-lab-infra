@@ -33,6 +33,11 @@
 # will be delivered.
 # -----------------------------------------------------------------------------
 
+# trivy:ignore:AVD-AWS-0095 — deliberately unencrypted for now: the free
+# AWS-managed aws/sns key cannot grant cloudwatch.amazonaws.com publish
+# rights, so "encrypting" with it silently breaks every alarm feeding this
+# topic; doing it right needs a paid CMK. Decision tracked in #180 item 3.
+#trivy:ignore:AVD-AWS-0095
 resource "aws_sns_topic" "alerts" {
   name = "${var.project}-${var.environment}-alerts"
 

@@ -1,5 +1,9 @@
 # modules/ecr/main.tf
 
+# trivy:ignore:AVD-AWS-0031 — tag immutability would break the deploy
+# pipeline's `:latest` push. Moving to digest-referenced task definitions
+# (which makes IMMUTABLE adoptable) is tracked in #180 item 1.
+#trivy:ignore:AVD-AWS-0031
 resource "aws_ecr_repository" "this" {
   name                 = "${var.project}-${var.environment}-app"
   image_tag_mutability = var.image_tag_mutability
@@ -39,10 +43,10 @@ resource "aws_ecr_lifecycle_policy" "this" {
         rulePriority = 2
         description  = "Keep only the last ${var.max_image_count} tagged images"
         selection = {
-          tagStatus   = "tagged"
+          tagStatus      = "tagged"
           tagPatternList = ["*"]
-          countType   = "imageCountMoreThan"
-          countNumber = var.max_image_count
+          countType      = "imageCountMoreThan"
+          countNumber    = var.max_image_count
         }
         action = {
           type = "expire"

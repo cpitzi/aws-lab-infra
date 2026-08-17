@@ -4,6 +4,10 @@
 # The ALB itself is a managed AWS resource that spans multiple AZs.
 # Setting internal=false makes it internet-facing (reachable from the public internet).
 # It lives in public subnets because it needs a public IP to receive traffic from the internet.
+# trivy:ignore:AVD-AWS-0053 — internet-facing by design: this ALB is the public
+# entry point for the sites it fronts. The check exists to catch accidental
+# exposure of internal assets; this exposure is the product.
+#trivy:ignore:AVD-AWS-0053
 resource "aws_lb" "this" {
   name               = "${var.project}-${var.environment}-alb"
   internal           = false
@@ -14,6 +18,10 @@ resource "aws_lb" "this" {
   # Prevents accidental deletion via the AWS console or API.
   # Set to false for lab so terraform destroy works cleanly.
   enable_deletion_protection = false
+
+  # Strip headers that don't conform to RFC 7230 before they reach targets
+  # (header-smuggling hardening; tf-lint AVD-AWS-0052, fixed 2026-08-17).
+  drop_invalid_header_fields = true
 
   # Per-request access logs to S3 — the "visitor source" signal (client IP,
   # referer, user-agent) that CloudWatch metrics don't carry. Opt-in via
@@ -75,6 +83,10 @@ resource "aws_s3_bucket_public_access_block" "access_logs" {
   restrict_public_buckets = true
 }
 
+# trivy:ignore:AVD-AWS-0132 — SSE-S3 is mandatory here, not a downgrade: ALB
+# log delivery does not support SSE-KMS destination buckets (trivy's own
+# remediation text says to use SSE-S3 for this exact case).
+#trivy:ignore:AVD-AWS-0132
 resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs" {
   count  = var.enable_access_logs ? 1 : 0
   bucket = aws_s3_bucket.access_logs[0].id

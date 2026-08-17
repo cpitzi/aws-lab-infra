@@ -74,7 +74,7 @@ resource "aws_elasticache_replication_group" "this" {
   port           = var.port
 
   # Topology — single node for lab
-  num_cache_clusters     = var.num_cache_clusters
+  num_cache_clusters         = var.num_cache_clusters
   automatic_failover_enabled = var.num_cache_clusters > 1
   multi_az_enabled           = var.num_cache_clusters > 1
 
@@ -95,7 +95,7 @@ resource "aws_elasticache_replication_group" "this" {
   parameter_group_name = aws_elasticache_parameter_group.this.name
 
   # Maintenance
-  maintenance_window = var.maintenance_window
+  maintenance_window         = var.maintenance_window
   auto_minor_version_upgrade = true
   apply_immediately          = var.apply_immediately
 
