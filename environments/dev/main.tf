@@ -82,22 +82,21 @@ module "iam" {
   tfstate_kms_key_arn       = data.aws_kms_alias.tfstate.target_key_arn
   db_credentials_secret_arn = module.secrets.db_credentials_secret_arn
   github_org                = "lentago"
-  github_repo               = "solidago"       # Terraform pipeline role's OIDC trust
-  app_github_repo           = "ice-cream-book" # App deploy role's OIDC trust (post-#55 split)
+  github_repo               = "solidago"                     # Terraform pipeline role's OIDC trust
+  app_github_repo           = "site-icecreamtofightwith-com" # App deploy role's OIDC trust (post-#55 split)
 
   # Additional workload repos that deploy onto this platform via the same app
-  # OIDC role. The site repos were renamed 2026-07-04 to the site-<domain>
-  # convention (ice-cream-book → site-icecreamtofightwith-com, lentagolabs-dev
-  # → site-lentago-dev); both old and new names are trusted during the
-  # transition — prune the old names (and flip app_github_repo above) once the
-  # renamed repos' deploys are proven green. The pitzilabs-dev / site-pitzilabs-dev
-  # trust was removed 2026-07-10 (#80) when the retired Pitzi Labs preview site
-  # was torn down. The sites ride on the shared ALB — see module.site_lentago
-  # below. The role's ECR/ECS permissions are already account-scoped, so this
-  # trust entry is all that's needed.
+  # OIDC role. Each site lives in its own repo and deploys via the shared
+  # solidago-dev-github-actions role; the role's ECR/ECS permissions are already
+  # account-scoped, so onboarding a site is just adding its trust sub here. The
+  # rename-era dual-trust entries (ice-cream-book → site-icecreamtofightwith-com,
+  # lentagolabs-dev → site-lentago-dev) were pruned in #173 once the renamed
+  # repos' deploys were proven green: GitHub mints OIDC subs under a repo's
+  # CURRENT name, so the old-name subs could never match and were dead weight.
+  # The pitzilabs-dev / site-pitzilabs-dev trust was removed 2026-07-10 (#80)
+  # when the retired Pitzi Labs preview site was torn down. The sites ride on
+  # the shared ALB — see module.site_lentago below.
   additional_app_github_repos = [
-    "lentagolabs-dev",
-    "site-icecreamtofightwith-com",
     "site-lentago-dev",
     # pondviewlane.com content — deploys the built Astro site to
     # module.site_pondview below as a hidden, unlisted preview for trustee review
