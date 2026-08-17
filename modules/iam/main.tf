@@ -316,6 +316,11 @@ data "aws_iam_policy_document" "github_actions" {
       "ecr:InitiateLayerUpload",
       "ecr:UploadLayerPart",
       "ecr:CompleteLayerUpload",
+      # DescribeImages: read-only; the site-deploy reusable resolves the pushed
+      # image's digest for build-provenance attestation (attest what the
+      # REGISTRY has, not what the local daemon says). Added 2026-08-17 when
+      # the first attested deploy failed AccessDenied on exactly this call.
+      "ecr:DescribeImages",
     ]
     # Scoped to our account's ECR repos — we'll tighten to a specific repo
     # once we create it in Phase 3
