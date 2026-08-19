@@ -242,8 +242,8 @@ output "lentago_domain_url" {
 }
 
 output "grafana_cloudwatch_role_arn" {
-  description = "Role ARN for the Grafana Cloud CloudWatch datasource (consumed by lentago/drosera terraform/datasources.tf)"
-  value       = module.grafana_cloud.role_arn
+  description = "Role ARN for the Grafana Cloud CloudWatch datasource (consumed by lentago/drosera terraform/datasources.tf); null when Grafana Cloud is disabled."
+  value       = local.grafana_cloud_enabled ? module.grafana_cloud[0].role_arn : null
 }
 
 output "axiom_ingest_secret_arn" {

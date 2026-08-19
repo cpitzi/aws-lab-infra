@@ -135,7 +135,7 @@ solidago/
 │       ├── main.tf              # Root module — wires all modules together
 │       ├── variables.tf         # Environment-specific variables
 │       ├── outputs.tf           # Exported values
-│       └── terraform.tfvars     # Variable values for dev
+│       └── terraform.tfvars.example  # Copy to terraform.tfvars and fill in values
 ├── modules/                     # 24 modules, all wired from environments/dev/main.tf
 │   ├── alb/                     # Application Load Balancer + listeners + access-log bucket
 │   ├── alb-log-shipper/         # Lambda shipping ALB access logs from S3 to Axiom

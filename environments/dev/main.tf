@@ -31,6 +31,17 @@ provider "aws" {
     }
   }
 }
+
+locals {
+  # Both Grafana Cloud values must be non-empty to create the cross-account role.
+  # Leave either blank in terraform.tfvars to skip the module entirely.
+  # nonsensitive() declassifies only the emptiness test, never the external id
+  # itself — a sensitive-derived value here would poison module count (a
+  # plan-time error) and the grafana_cloudwatch_role_arn output (a validate
+  # error: "Output refers to sensitive values").
+  grafana_cloud_enabled = var.grafana_cloud_account_id != "" && nonsensitive(var.grafana_cloud_external_id != "")
+}
+
 module "vpc" {
   source = "../../modules/vpc"
 
@@ -600,6 +611,7 @@ module "dashboard" {
 }
 
 module "grafana_cloud" {
+  count  = local.grafana_cloud_enabled ? 1 : 0
   source = "../../modules/grafana-cloud"
 
   project     = var.project
@@ -607,6 +619,15 @@ module "grafana_cloud" {
 
   grafana_cloud_account_id  = var.grafana_cloud_account_id
   grafana_cloud_external_id = var.grafana_cloud_external_id
+}
+
+# State migration: adding count to module.grafana_cloud shifts its address from
+# module.grafana_cloud to module.grafana_cloud[0]. This moved block tells
+# Terraform to treat the existing instance as already at [0] — no resource
+# changes, just an address rename in state.
+moved {
+  from = module.grafana_cloud
+  to   = module.grafana_cloud[0]
 }
 
 module "cloudtrail" {
