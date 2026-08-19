@@ -144,17 +144,17 @@ cd solidago
 
 ## Step 4: Configure Variables
 
-Review and update the Terraform variables for your environment:
+Copy the example variables file and fill in your values:
 
 ```bash
-cat environments/dev/terraform.tfvars
+cp environments/dev/terraform.tfvars.example environments/dev/terraform.tfvars
 ```
 
-At minimum, update:
-- `project` — your project name (default: `solidago`)
-- `environment` — environment name (default: `dev`)
-- `domain_name` — your registered domain
-- Any resource sizing (RDS instance class, ElastiCache node type, etc.)
+Open `environments/dev/terraform.tfvars` in your editor. Each variable has a comment explaining what it is and where to find the value. At minimum, set the preview hostnames:
+- `lentago_preview_host` — an unguessable single-label subdomain of your primary domain (e.g. `my-secret-preview`)
+- `pondview_preview_host` — a separate unguessable subdomain for the Pond View site preview
+
+Variables with empty-string defaults (`grafana_cloud_account_id`, `grafana_cloud_external_id`, `anthropic_api_key`) are optional — leave them blank to skip those integrations. Variables with non-empty defaults (`project`, `environment`, `aws_region`) can be left as-is for a standard dev deployment.
 
 Update the backend configuration in `environments/dev/main.tf` to reference your state bucket:
 

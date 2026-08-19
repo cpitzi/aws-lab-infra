@@ -1,0 +1,51 @@
+# terraform.tfvars.example — copy this to terraform.tfvars and fill in your values.
+# terraform.tfvars is gitignored; this file is committed so new adopters have a
+# starting point. See docs/BOOTSTRAP.md for the full walkthrough.
+
+# ── Core identity ────────────────────────────────────────────────────────────
+
+# Short name for all AWS resources (default is fine; change if you fork the project).
+project = "solidago"
+
+# Deployment tier — keeps the dev stack isolated from any future staging/prod.
+environment = "dev"
+
+# AWS region for all resources.
+aws_region = "us-east-1"
+
+# ── Preview hostnames ─────────────────────────────────────────────────────────
+# These are hidden, single-label subdomains of your primary domain
+# (icecreamtofightwith.com in the reference stack). The wildcard ACM cert
+# (*.icecreamtofightwith.com) covers them so no extra certificate is needed.
+# Choose any unguessable string; the ALB listener rule routes only this hostname
+# to the corresponding site, so it functions as a soft access gate.
+# Supply via the LENTAGO_PREVIEW_HOST / PONDVIEW_PREVIEW_HOST Actions variables
+# in CI so the values stay out of git history.
+
+# Subdomain for the Lentago Labs landing-site preview (module.site_lentago).
+lentago_preview_host = "change-me-lentago-preview"
+
+# Subdomain for the Pond View Lane site preview (module.site_pondview).
+pondview_preview_host = "change-me-pondview-preview"
+
+# ── Grafana Cloud (optional) ──────────────────────────────────────────────────
+# Leave both blank ("") to skip the Grafana Cloud IAM role entirely.
+# When set, Terraform creates a cross-account read-only role that Grafana's
+# AWS account can assume (confused-deputy-protected by the External ID) to
+# query CloudWatch metrics. Values appear in the Grafana Cloud UI when you
+# configure a CloudWatch datasource with "Grafana Assume Role" auth.
+# Supply via the GRAFANA_CLOUD_ACCOUNT_ID Actions variable and
+# GRAFANA_CLOUD_EXTERNAL_ID Actions secret in CI.
+
+# Grafana Cloud's AWS account ID (12-digit number, not an ARN).
+grafana_cloud_account_id = ""
+
+# External ID shown in the Grafana Cloud datasource configuration UI.
+grafana_cloud_external_id = ""
+
+# ── Ask-the-Wiki Lambda (optional) ────────────────────────────────────────────
+# Anthropic API key for the "Ask" answer Lambda (module.ask_pondview).
+# Leave blank to deploy the Lambda in a degraded state (endpoint exists,
+# returns 502 until the key is set). Supply via the ANTHROPIC_API_KEY Actions
+# secret in CI — never commit the real key.
+anthropic_api_key = ""

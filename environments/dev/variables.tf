@@ -46,8 +46,10 @@ variable "grafana_cloud_account_id" {
     read-only role. Displayed in the Grafana Cloud UI when configuring a
     CloudWatch datasource with "Grafana Assume Role" auth. Supplied by CI
     from the repo Actions variable GRAFANA_CLOUD_ACCOUNT_ID.
+    Leave empty to skip the Grafana Cloud IAM role (module.grafana_cloud count = 0).
   EOT
-  type        = string
+  type    = string
+  default = ""
 }
 
 variable "grafana_cloud_external_id" {
@@ -55,9 +57,11 @@ variable "grafana_cloud_external_id" {
     External ID unique to the lentago.grafana.net stack, required by the
     trust policy's sts:ExternalId condition (confused-deputy protection).
     Supplied by CI from the repo Actions secret GRAFANA_CLOUD_EXTERNAL_ID.
+    Leave empty to skip the Grafana Cloud IAM role (module.grafana_cloud count = 0).
   EOT
-  type        = string
-  sensitive   = true
+  type      = string
+  sensitive = true
+  default   = ""
 }
 
 variable "anthropic_api_key" {
