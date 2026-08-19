@@ -48,8 +48,8 @@ variable "grafana_cloud_account_id" {
     from the repo Actions variable GRAFANA_CLOUD_ACCOUNT_ID.
     Leave empty to skip the Grafana Cloud IAM role (module.grafana_cloud count = 0).
   EOT
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "grafana_cloud_external_id" {
@@ -59,9 +59,9 @@ variable "grafana_cloud_external_id" {
     Supplied by CI from the repo Actions secret GRAFANA_CLOUD_EXTERNAL_ID.
     Leave empty to skip the Grafana Cloud IAM role (module.grafana_cloud count = 0).
   EOT
-  type      = string
-  sensitive = true
-  default   = ""
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 variable "anthropic_api_key" {

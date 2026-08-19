@@ -35,7 +35,11 @@ provider "aws" {
 locals {
   # Both Grafana Cloud values must be non-empty to create the cross-account role.
   # Leave either blank in terraform.tfvars to skip the module entirely.
-  grafana_cloud_enabled = var.grafana_cloud_account_id != "" && var.grafana_cloud_external_id != ""
+  # nonsensitive() declassifies only the emptiness test, never the external id
+  # itself — a sensitive-derived value here would poison module count (a
+  # plan-time error) and the grafana_cloudwatch_role_arn output (a validate
+  # error: "Output refers to sensitive values").
+  grafana_cloud_enabled = var.grafana_cloud_account_id != "" && nonsensitive(var.grafana_cloud_external_id != "")
 }
 
 module "vpc" {
