@@ -151,7 +151,7 @@ tracking issue.
 | GitHub org `lentago` + workload repos (`site-icecreamtofightwith-com`, `site-lentago-dev`, immutable `lentago@…/site-pondviewlane-com@…`) | `environments/dev/main.tf:85–133` (`module.iam` inputs) | Your org and your workload repo name(s) — this is the OIDC deploy trust | mechanical |
 | Cross-repo tfstate role `dotgithub-github-actions-terraform` trusting `lentago/.github` | `modules/iam/main.tf:~500–560` + `dotgithub_repo` input | Delete if you have no shared-workflows repo needing state access | mechanical |
 | Terraform-pipeline OIDC trust `repo:<org>/solidago:environment:terraform` | created by hand in the drill; see BOOTSTRAP Step 7 | Your org/repo | mechanical |
-| Axiom datasets `cjp-solidago-ecs` / `cjp-solidago-alb` + the FireLens sidecar and ALB-log shipper wiring | `environments/dev/main.tf:180–224,270,379` and `module.secrets` | Requires an Axiom account, or delete the `axiom_*` inputs + `module.alb_log_shipper`; **not yet gated by an on/off flag** | mechanical (structural — no skip flag exists) |
+| Axiom datasets `cjp-solidago-ecs` / `cjp-solidago-alb` + the FireLens sidecar and ALB-log shipper wiring | `environments/dev/main.tf:180–224,270,379` and `module.secrets` | Requires an Axiom account, or delete the `axiom_*` inputs + `module.alb_log_shipper` by hand | **structural** — there is no skip flag yet, unlike Grafana Cloud. Tracked in [#188](https://github.com/lentago/solidago/issues/188) |
 | Monthly budget threshold `$100` | `environments/dev/main.tf` (`module.budgets`) | Your budget | mechanical |
 
 **On plan cleanliness:** the reference repo's CI plans are *not* clean — three
