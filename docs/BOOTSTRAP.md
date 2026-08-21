@@ -4,6 +4,8 @@ This guide walks through deploying the solidago stack (AWS resources and the Ter
 
 **Audience:** Engineers evaluating this project, or anyone standing up their own instance of the stack.
 
+> **Adopting Solidago into your own AWS account?** [ADOPTION.md](../ADOPTION.md) is the front door — prerequisites, an intake table, an exhaustive swap list, and a local-first drill. This document is the detailed step reference it links into; read it alongside the drill.
+
 **Time estimate:** ~45 minutes for a fresh AWS account with a registered domain.
 
 ---

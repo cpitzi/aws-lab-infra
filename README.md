@@ -214,7 +214,9 @@ This runs on personal money. Terraform state persists in S3, so `terraform destr
 
 ## Getting Started
 
-See [docs/BOOTSTRAP.md](docs/BOOTSTRAP.md) for the complete deployment runbook. It covers everything from AWS account setup through pipeline verification.
+**Adopting this to run your own instance?** Start at [ADOPTION.md](ADOPTION.md) — the adopter's front door. It consolidates the prerequisites, an intake table, an exhaustive swap list of every value coupled to our estate, and a local-first drill with a check at every step.
+
+For the detailed, step-by-step deployment reference, see [docs/BOOTSTRAP.md](docs/BOOTSTRAP.md). It covers everything from AWS account setup through pipeline verification; ADOPTION.md links into it rather than duplicating it.
 
 ## Cost
 
