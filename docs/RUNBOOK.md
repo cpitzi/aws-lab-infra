@@ -139,11 +139,12 @@ The script:
 
 **Default is `stop`** for three reasons: it preserves the database, saves the bulk
 of the cost (instance-hours), and — critically — it **sidesteps the KMS-secret
-re-key trap** from issue #20. Stopping never deletes the RDS-managed
-`db-credentials` secret, so it can never come back bound to a delete-scheduled
-KMS key. In a *selective* teardown the Terraform KMS key is kept and never
-delete-scheduled, so even `RDS_MODE=destroy` is safe from that trap here — the
-trap is specifically a **full-destroy** hazard (see below).
+re-key trap** from issue #20. Stopping never touches the Terraform-managed KMS
+key, so the (unused, placeholder) `db-credentials` secret can never come back
+bound to a delete-scheduled key. In a *selective* teardown the Terraform KMS
+key is kept and never delete-scheduled, so even `RDS_MODE=destroy` is safe
+from that trap here — the trap is specifically a **full-destroy** hazard (see
+below).
 
 `aws rds stop-db-instance` works on the Multi-AZ instance this stack provisions.
 
