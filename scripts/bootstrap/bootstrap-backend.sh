@@ -2,11 +2,10 @@
 set -euo pipefail
 
 # Configuration
-AWS_PROFILE="foundry"
 AWS_REGION="us-east-1"
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --profile "${AWS_PROFILE}")
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 if [[ -z "${ACCOUNT_ID}" ]]; then
-  echo "ERROR: Could not determine AWS account ID. Check your AWS_PROFILE." >&2
+  echo "ERROR: Could not determine AWS account ID. Check your AWS credentials." >&2
   exit 1
 fi
 BUCKET_NAME="solidago-tfstate-${ACCOUNT_ID}"
@@ -15,14 +14,12 @@ KMS_ALIAS="alias/solidago-tfstate"
 echo "==> Creating S3 bucket for Terraform state..."
 aws s3api create-bucket \
   --bucket "${BUCKET_NAME}" \
-  --region "${AWS_REGION}" \
-  --profile "${AWS_PROFILE}"
+  --region "${AWS_REGION}"
 
 echo "==> Enabling versioning on state bucket..."
 aws s3api put-bucket-versioning \
   --bucket "${BUCKET_NAME}" \
-  --versioning-configuration Status=Enabled \
-  --profile "${AWS_PROFILE}"
+  --versioning-configuration Status=Enabled
 
 # ---------------------------------------------------------------------------
 # Dedicated customer-managed KMS key (CMK) for the Terraform state bucket.
@@ -51,13 +48,12 @@ echo "==> Ensuring dedicated KMS CMK for state bucket encryption..."
 KEY_ID=$(aws kms describe-key \
   --key-id "${KMS_ALIAS}" \
   --query 'KeyMetadata.KeyId' \
-  --output text \
-  --profile "${AWS_PROFILE}" 2>/dev/null || true)
+  --output text 2>/dev/null || true)
 
 if [[ -z "${KEY_ID}" || "${KEY_ID}" == "None" ]]; then
   echo "    No existing key found — creating a new CMK..."
   KEY_ID=$(aws kms create-key \
-    --description "foundry Terraform state bucket encryption key" \
+    --description "solidago Terraform state bucket encryption key" \
     --tags TagKey=Name,TagValue=solidago-tfstate-key \
     --policy '{
       "Version": "2012-10-17",
@@ -73,19 +69,16 @@ if [[ -z "${KEY_ID}" || "${KEY_ID}" == "None" ]]; then
       ]
     }' \
     --query 'KeyMetadata.KeyId' \
-    --output text \
-    --profile "${AWS_PROFILE}")
+    --output text)
 
   echo "    Enabling automatic annual key rotation..."
   aws kms enable-key-rotation \
-    --key-id "${KEY_ID}" \
-    --profile "${AWS_PROFILE}"
+    --key-id "${KEY_ID}"
 
   echo "    Creating alias ${KMS_ALIAS}..."
   aws kms create-alias \
     --alias-name "${KMS_ALIAS}" \
-    --target-key-id "${KEY_ID}" \
-    --profile "${AWS_PROFILE}"
+    --target-key-id "${KEY_ID}"
 else
   echo "    Reusing existing key ${KEY_ID} (alias ${KMS_ALIAS})."
 fi
@@ -93,8 +86,7 @@ fi
 KEY_ARN=$(aws kms describe-key \
   --key-id "${KEY_ID}" \
   --query 'KeyMetadata.Arn' \
-  --output text \
-  --profile "${AWS_PROFILE}")
+  --output text)
 
 echo "==> Enabling server-side encryption (SSE-KMS with the dedicated CMK)..."
 aws s3api put-bucket-encryption \
@@ -109,15 +101,13 @@ aws s3api put-bucket-encryption \
         "BucketKeyEnabled": true
       }
     ]
-  }' \
-  --profile "${AWS_PROFILE}"
+  }'
 
 echo "==> Blocking all public access on state bucket..."
 aws s3api put-public-access-block \
   --bucket "${BUCKET_NAME}" \
   --public-access-block-configuration \
-    BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true \
-  --profile "${AWS_PROFILE}"
+    BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
 
 echo ""
 echo "==> Bootstrap complete!"
