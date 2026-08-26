@@ -61,12 +61,21 @@
 | ECS task execution role | arn:aws:iam::`<ACCOUNT_ID>`:role/solidago-dev-ecs-task-execution |
 | ECS task role | arn:aws:iam::`<ACCOUNT_ID>`:role/solidago-dev-ecs-task |
 | GitHub Actions OIDC role | arn:aws:iam::`<ACCOUNT_ID>`:role/solidago-dev-github-actions |
-| Secrets Manager secret name | solidago-dev/db-credentials |
+| Secrets Manager secret name | solidago-dev/db-credentials (unused placeholder — see note) |
 | Secrets Manager secret ARN | arn:aws:secretsmanager:us-east-1:`<ACCOUNT_ID>`:secret:solidago-dev/db-credentials-`<SUFFIX>` |
 | ALB security group | sg-09d6b29de9879301c |
 | App security group | sg-0e31af3dc8ce08f3a |
 | RDS security group | sg-08a72bc492fa4fea0 |
 | Redis security group | sg-034ba24499da8d804 |
+
+`solidago-dev/db-credentials` was provisioned in Phase 2 as a placeholder for
+RDS credentials. Phase 4 chose RDS-managed master passwords instead (Decision
+#19), so RDS creates and rotates its own separate `rds!db-...` secret and this
+one is never populated with real values or read by anything — both ECS IAM
+roles still grant `GetSecretValue` on it, but no task definition references it
+via `valueFrom`. It remains orphaned; see
+[issue #20](https://github.com/lentago/solidago/issues/20) for disposition
+options (leave / repurpose / remove).
 
 ---
 

@@ -3,15 +3,23 @@
 # =============================================================================
 # Secrets Manager — Credential Storage Pattern
 #
-# This establishes the pattern we'll use for all application secrets.
-# Right now it's a placeholder; in Phase 4, we'll create a secret for
-# RDS credentials (either manually or via RDS's native Secrets Manager
-# integration). The important thing is the encryption and access pattern
-# is already in place.
+# This established the pattern used for all application secrets (Axiom
+# ingest headers below reuse it). It was originally a placeholder intended
+# to hold RDS credentials once Phase 4 landed.
+#
+# STATUS: unused / orphaned. Phase 4 (modules/rds) chose RDS-managed master
+# passwords instead (Decision #19, docs/reference-notes.md) — RDS creates
+# and rotates its own `rds!db-...` secret, so this secret's placeholder
+# value is never read by anything and no live credentials are ever written
+# to it. It is still provisioned and still IAM-readable (modules/iam grants
+# both ECS roles GetSecretValue on it), but nothing in this repo references
+# it via `valueFrom` or otherwise consumes it. Disposition (leave vs.
+# repurpose vs. remove) is tracked in issue #20; this comment only documents
+# the current state, not a decision.
 #
 # Why Secrets Manager over SSM Parameter Store (SecureString)?
 # - Native secret rotation support (Lambda-backed)
-# - Cross-account sharing capabilities  
+# - Cross-account sharing capabilities
 # - RDS, Redshift, and DocumentDB have built-in rotation integrations
 # - JSON secret values (store username + password + host in one secret)
 # SSM Parameter Store is cheaper ($0 vs $0.40/secret/month) but lacks
@@ -21,7 +29,7 @@
 
 resource "aws_secretsmanager_secret" "db_credentials" {
   name        = "${var.project}-${var.environment}/db-credentials"
-  description = "Database credentials for the application (placeholder until Phase 4)"
+  description = "Unused placeholder — RDS uses its own managed master password (Decision #19). See issue #20."
   kms_key_id  = var.kms_key_arn
 
   # Secrets Manager has a gotcha: deleted secrets retain their name for the
@@ -42,10 +50,11 @@ resource "aws_secretsmanager_secret" "db_credentials" {
 resource "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id = aws_secretsmanager_secret.db_credentials.id
 
-  # Placeholder JSON structure matching what RDS will eventually need.
-  # Using jsonencode keeps it clean. In Phase 4, we'll either:
-  # (a) update this with real credentials, or
-  # (b) let RDS manage the secret directly and import it.
+  # Placeholder JSON structure that was meant to match what RDS would need.
+  # Phase 4 went a different way: RDS manages its own master-password secret
+  # (manage_master_user_password = true, modules/rds), so this value was
+  # never updated with real credentials and stays a placeholder — see the
+  # STATUS note above.
   secret_string = jsonencode({
     username = "placeholder"
     password = "placeholder"
